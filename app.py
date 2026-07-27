@@ -2,6 +2,34 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import libreria_funciones_proyecto1 as lfp
+import librería_clases_proyecto1 as lcp
+
+# ------------------------------------------------------------------
+# Estado global (histórico / registros de cada ejercicio)
+# ------------------------------------------------------------------
+if "movimientos_ej1" not in st.session_state:
+    st.session_state.movimientos_ej1 = []  # lista de dicts: concepto, tipo, valor
+ 
+if "registros_ej2" not in st.session_state:
+    # Se guardan como arrays de NumPy independientes por columna
+    st.session_state.registros_ej2 = {
+        "nombre_producto": np.array([], dtype=object),
+        "categoria": np.array([], dtype=object),
+        "precio": np.array([], dtype=float),
+        "cantidad": np.array([], dtype=int),
+        "total": np.array([], dtype=float),
+    }
+ 
+if "historico_ej3" not in st.session_state:
+    st.session_state.historico_ej3 = pd.DataFrame(
+        columns=[
+            "tiempo_operacion_h", "numero_fallas", "tiempo_reparacion_total_h",
+            "mtbf_h", "mttr_h", "disponibilidad_pct",
+        ]
+    )
+ 
+if "proyectos_ej4" not in st.session_state:
+    st.session_state.proyectos_ej4 = []
 
 st.sidebar.image('DMC.png')
 app_mode = st.sidebar.selectbox('_Secciones_',['Home','Ejercicio 1','Ejercicio 2','Ejercicio 3','Ejercicio 4'])
@@ -151,153 +179,213 @@ elif app_mode == 'Ejercicio 2':
     else:
         st.info("Aún no hay registros.")
 elif app_mode == 'Ejercicio 3':
-# --- Configuración de la página ---
-  st.set_page_config(page_title="Ejercicio 3 - Cálculo de Disponibilidad") 
-# 1. Inicializar el histórico en el session_state
-  
-  if 'historico_resultados' not in st.session_state:
-        st.session_state.historico_resultados = []
-    
-  st.title("Cálculo de Disponibilidad")
-  
-  # 2. Selector de función (aunque solo usemos una, el ejercicio lo pide)
-  opcion = st.selectbox("Seleccione la función a utilizar", 
-                       ["Calcular Disponibilidad de Sistema"])
-  
-  # 3. Widgets para ingresar parámetros
-  st.subheader("Parámetros de entrada")
-  col1, col2 = st.columns(2)
-  
-  with col1:
-      t_total = st.number_input("Tiempo Total (horas)", min_value=0.1, value=24.0, step=1.0)
-  
-  with col2:
-      t_caida = st.number_input("Tiempo Caída (horas)", min_value=0.0, value=0.0, step=0.1)
-  
-  # 4. Botón para ejecutar y mostrar resultado
-  if st.button("Ejecutar Función"):
-      try:
-          # Ejecución de la función desde la librería externa
-          # Recordar que devuelve un diccionario: {"disponibilidad_pct": valor}
-          resultado_dict = lfp.calcular_disponibilidad_sistema(t_total, t_caida)
-          
-          # Extraer el valor del diccionario
-          valor_dispo = resultado_dict["disponibilidad_pct"]
-          
-          # 5. Mostrar resultado en pantalla
-          st.success(f"La disponibilidad calculada es: {valor_dispo}%")
-          st.metric("Resultado", f"{valor_dispo}%")
-  
-          # 6. Guardar en el histórico para el DataFrame
-          registro = {
-              "Función": opcion,
-              "T. Total (h)": t_total,
-              "T. Caída (h)": t_caida,
-              "Disponibilidad (%)": valor_dispo
-          }
-          st.session_state.historico_resultados.append(registro)
-  
-      except ValueError as e:
-          st.error(f"Error en los parámetros: {e}")
-  
-  # --- Mostrar tabla histórica ---
-  st.divider()
-  st.subheader("Tabla histórica de resultados")
-  
-  if st.session_state.historico_resultados:
-      df_historico = pd.DataFrame(st.session_state.historico_resultados)
-      st.dataframe(df_historico, use_container_width=True, hide_index=True)
-  else:
-      st.info("Aún no hay registros en el histórico.")
-elif app_mode == 'Ejercicio 4':
-  # --- Configuración de la página ---
-  st.set_page_config(page_title="Ejercicio 4 - CRUD")
-  if 'servidores' not in st.session_state:
-      st.session_state.servidores = []
-  
-  st.title("Gestión de Servidores (CRUD)")
-  
-  # Usamos Tabs para organizar el CRUD
-  tab_crear, tab_leer, tab_actualizar, tab_eliminar = st.tabs(["Crear", "Leer", "Actualizar", "Eliminar"])
-  
-  # ---------------------------------------------------------
-  # C - CREATE (Crear)
-  # ---------------------------------------------------------
-  with tab_crear:
-      st.subheader("Registrar Nuevo Servidor")
-      with st.form("form_registro"):
-          nombre = st.text_input("Nombre del Servidor")
-          t_total = st.number_input("Tiempo Total (h)", min_value=1.0, value=24.0)
-          t_caida = st.number_input("Tiempo Caída (h)", min_value=0.0, value=0.0)
-          a_total = st.number_input("Almacenamiento Total (GB)", min_value=1.0, value=100.0)
-          a_usado = st.number_input("Almacenamiento Usado (GB)", min_value=0.0, value=10.0)
-          
-          btn_crear = st.form_submit_button("Guardar Servidor")
-          
-          if btn_crear:
-              try:
-                  # Instanciamos la clase de la librería
-                  nuevo_srv = srv.Servidor(nombre, t_total, t_caida, a_total, a_usado)
-                  # Guardamos el resumen (diccionario) en la lista
-                  st.session_state.servidores.append(nuevo_srv.resumen())
-                  st.success(f"Servidor {nombre} registrado!")
-              except ValueError as e:
-                  st.error(f"Error: {e}")
-  
-  # ---------------------------------------------------------
-  # R - READ (Leer)
-  # ---------------------------------------------------------
-  with tab_leer:
-      st.subheader("Listado de Servidores")
-      if st.session_state.servidores:
-          df = pd.DataFrame(st.session_state.servidores)
-          st.dataframe(df, use_container_width=True)
-      else:
-          st.info("No hay servidores registrados.")
-  
-  # ---------------------------------------------------------
-  # U - UPDATE (Actualizar)
-  # ---------------------------------------------------------
-  with tab_actualizar:
-      st.subheader("Modificar Datos")
-      if st.session_state.servidores:
-          nombres_srv = [s['servidor'] for s in st.session_state.servidores]
-          elegido = st.selectbox("Selecciona servidor para editar", nombres_srv)
-          
-          # Formulario de edición
-          nuevo_t_caida = st.number_input("Nuevo Tiempo de Caída", min_value=0.0)
-          nuevo_a_usado = st.number_input("Nuevo Almacenamiento Usado", min_value=0.0)
-          
-          if st.button("Actualizar"):
-              for s in st.session_state.servidores:
-                  if s['servidor'] == elegido:
-                      # Recalculamos usando la clase de nuevo para validar
-                      try:
-                          # Buscamos datos originales para no perder el nombre y totales
-                          # (En un CRUD real guardaríamos el objeto completo)
-                          upd = srv.Servidor(elegido, 1000, nuevo_t_caida, 1000, nuevo_a_usado) 
-                          s['disponibilidad_pct'] = round(upd.calcular_disponibilidad(), 2)
-                          s['uso_almacenamiento_pct'] = round(upd.calcular_uso_almacenamiento(), 2)
-                          s['estado'] = upd.estado_servidor()
-                          st.success("Actualizado")
-                          st.rerun()
-                      except ValueError as e:
-                          st.error(e)
-      else:
-          st.write("Nada que actualizar.")
-  
-  # ---------------------------------------------------------
-  # D - DELETE (Eliminar)
-  # ---------------------------------------------------------
-  with tab_eliminar:
-      st.subheader("Eliminar Registros")
-      if st.session_state.servidores:
-          nombres_eliminar = [s['servidor'] for s in st.session_state.servidores]
-          a_borrar = st.selectbox("Selecciona servidor a borrar", nombres_eliminar)
-          
-          if st.button("Eliminar permanentemente", type="primary"):
-              st.session_state.servidores = [s for s in st.session_state.servidores if s['servidor'] != a_borrar]
-              st.warning(f"Servidor {a_borrar} eliminado.")
-              st.rerun()
+
+st.title('Ejercicio 3: Indicadores de Mantenimiento')
+    st.markdown(
+        '''
+        Este módulo calcula **MTBF**, **MTTR** y **disponibilidad** a partir del
+        tiempo de operación, el número de fallas y el tiempo total de reparación,
+        usando la función `calcular_indicadores_mantenimiento` de la librería del proyecto.
+        '''
+    )
  
-  
+    tiempo_operacion_h = st.number_input(
+        "Tiempo de operación (horas)", min_value=0.0, value=100.0, step=1.0, key="op_ej3"
+    )
+    numero_fallas = st.number_input("Número de fallas", min_value=1, value=5, step=1, key="fallas_ej3")
+    tiempo_reparacion_total_h = st.number_input(
+        "Tiempo total de reparación (horas)", min_value=0.0, value=10.0, step=1.0, key="rep_ej3"
+    )
+ 
+    if st.button("Ejecutar cálculo", key="btn_ej3"):
+        try:
+            resultado = lfp.calcular_indicadores_mantenimiento(
+                tiempo_operacion_h=tiempo_operacion_h,
+                numero_fallas=int(numero_fallas),
+                tiempo_reparacion_total_h=tiempo_reparacion_total_h,
+            )
+ 
+            st.success("Cálculo realizado correctamente ✅")
+            col1, col2, col3 = st.columns(3)
+            col1.metric("MTBF (h)", resultado["mtbf_h"])
+            col2.metric("MTTR (h)", resultado["mttr_h"])
+            col3.metric("Disponibilidad (%)", resultado["disponibilidad_pct"])
+ 
+            nueva_fila = {
+                "tiempo_operacion_h": tiempo_operacion_h,
+                "numero_fallas": numero_fallas,
+                "tiempo_reparacion_total_h": tiempo_reparacion_total_h,
+                **resultado,
+            }
+            st.session_state.historico_ej3 = pd.concat(
+                [st.session_state.historico_ej3, pd.DataFrame([nueva_fila])], ignore_index=True
+            )
+        except ValueError as e:
+            st.error(f"Error en los datos ingresados: {e}")
+ 
+    st.subheader("📋 Histórico de resultados")
+    if not st.session_state.historico_ej3.empty:
+        st.dataframe(st.session_state.historico_ej3, use_container_width=True)
+        if st.button("Limpiar histórico", key="limpiar_ej3"):
+            st.session_state.historico_ej3 = st.session_state.historico_ej3.iloc[0:0]
+            st.rerun()
+    else:
+        st.info("Aún no hay resultados calculados. Ejecuta el cálculo para ver el histórico aquí.")
+ 
+
+
+elif app_mode == 'Ejercicio 4':
+
+st.title('Ejercicio 4: Proyecto de Inversión (CRUD)')
+    st.markdown(
+        '''
+        Este módulo usa la clase `ProyectoInversion` (VPN, ROI, Payback simple) de la
+        librería del proyecto, con operaciones **CRUD** completas: crear, leer,
+        actualizar y eliminar proyectos.
+        '''
+    )
+ 
+    def _reconstruir_resumen(proy: dict) -> dict:
+        obj = lcp.ProyectoInversion(
+            nombre_proyecto=proy["nombre_proyecto"],
+            inversion_inicial=proy["inversion_inicial"],
+            flujos=proy["flujos"],
+            tasa_descuento_pct=proy["tasa_descuento_pct"],
+        )
+        return obj.resumen()
+ 
+    def _tabla_proyectos() -> pd.DataFrame:
+        filas = []
+        for proy in st.session_state.proyectos_ej4:
+            resumen = _reconstruir_resumen(proy)
+            filas.append(
+                {
+                    "nombre_proyecto": proy["nombre_proyecto"],
+                    "inversion_inicial": proy["inversion_inicial"],
+                    "flujos": proy["flujos"],
+                    "tasa_descuento_pct": proy["tasa_descuento_pct"],
+                    "vpn": resumen["vpn"],
+                    "roi_pct": resumen["roi_pct"],
+                    "payback_anios": resumen["payback_anios"],
+                    "decision": resumen["decision"],
+                }
+            )
+        return pd.DataFrame(filas)
+ 
+    tab_crear, tab_leer, tab_actualizar, tab_eliminar = st.tabs(
+        ["➕ Crear", "📋 Leer", "✏️ Actualizar", "🗑️ Eliminar"]
+    )
+ 
+    with tab_crear:
+        st.write("### Nuevo proyecto de inversión")
+        with st.form("form_crear_proyecto", clear_on_submit=True):
+            nombre_proyecto = st.text_input("Nombre del proyecto")
+            inversion_inicial = st.number_input(
+                "Inversión inicial", min_value=0.01, value=1000.0, step=100.0
+            )
+            flujos_texto = st.text_input(
+                "Flujos de caja por periodo (separados por coma)", placeholder="Ej: 300, 300, 400, 500"
+            )
+            tasa_descuento_pct = st.number_input(
+                "Tasa de descuento (%)", min_value=0.0, max_value=100.0, value=10.0, step=0.5
+            )
+            enviado = st.form_submit_button("Crear proyecto")
+ 
+        if enviado:
+            try:
+                nombres_existentes = [p["nombre_proyecto"] for p in st.session_state.proyectos_ej4]
+                if not nombre_proyecto.strip():
+                    raise ValueError("El nombre del proyecto no puede estar vacío.")
+                if nombre_proyecto in nombres_existentes:
+                    raise ValueError("Ya existe un proyecto con ese nombre.")
+ 
+                flujos = [float(x.strip()) for x in flujos_texto.split(",") if x.strip() != ""]
+ 
+                nuevo = lcp.ProyectoInversion(
+                    nombre_proyecto=nombre_proyecto,
+                    inversion_inicial=inversion_inicial,
+                    flujos=flujos,
+                    tasa_descuento_pct=tasa_descuento_pct,
+                )
+                nuevo.resumen()
+ 
+                st.session_state.proyectos_ej4.append(
+                    {
+                        "nombre_proyecto": nombre_proyecto,
+                        "inversion_inicial": inversion_inicial,
+                        "flujos": flujos,
+                        "tasa_descuento_pct": tasa_descuento_pct,
+                    }
+                )
+                st.success(f"Proyecto '{nombre_proyecto}' creado correctamente ✅")
+            except (ValueError, TypeError) as e:
+                st.error(f"Error en los datos ingresados: {e}")
+ 
+    with tab_leer:
+        st.write("### Proyectos registrados")
+        if st.session_state.proyectos_ej4:
+            st.dataframe(_tabla_proyectos(), use_container_width=True)
+        else:
+            st.info("Aún no hay proyectos registrados. Crea uno en la pestaña 'Crear'.")
+ 
+    with tab_actualizar:
+        st.write("### Actualizar proyecto existente")
+        if not st.session_state.proyectos_ej4:
+            st.info("No hay proyectos para actualizar.")
+        else:
+            nombres = [p["nombre_proyecto"] for p in st.session_state.proyectos_ej4]
+            seleccionado = st.selectbox("Selecciona el proyecto a actualizar", nombres, key="sel_actualizar")
+            idx = nombres.index(seleccionado)
+            proy_actual = st.session_state.proyectos_ej4[idx]
+ 
+            with st.form("form_actualizar_proyecto"):
+                nueva_inversion = st.number_input(
+                    "Inversión inicial", min_value=0.01, value=float(proy_actual["inversion_inicial"]), step=100.0
+                )
+                nuevos_flujos_texto = st.text_input(
+                    "Flujos de caja por periodo (separados por coma)",
+                    value=", ".join(str(f) for f in proy_actual["flujos"]),
+                )
+                nueva_tasa = st.number_input(
+                    "Tasa de descuento (%)", min_value=0.0, max_value=100.0,
+                    value=float(proy_actual["tasa_descuento_pct"]), step=0.5,
+                )
+                actualizar = st.form_submit_button("Actualizar proyecto")
+ 
+            if actualizar:
+                try:
+                    nuevos_flujos = [float(x.strip()) for x in nuevos_flujos_texto.split(",") if x.strip() != ""]
+                    lcp.ProyectoInversion(
+                        nombre_proyecto=proy_actual["nombre_proyecto"],
+                        inversion_inicial=nueva_inversion,
+                        flujos=nuevos_flujos,
+                        tasa_descuento_pct=nueva_tasa,
+                    )
+                    st.session_state.proyectos_ej4[idx] = {
+                        "nombre_proyecto": proy_actual["nombre_proyecto"],
+                        "inversion_inicial": nueva_inversion,
+                        "flujos": nuevos_flujos,
+                        "tasa_descuento_pct": nueva_tasa,
+                    }
+                    st.success(f"Proyecto '{seleccionado}' actualizado correctamente ✅")
+                except (ValueError, TypeError) as e:
+                    st.error(f"Error en los datos ingresados: {e}")
+ 
+    with tab_eliminar:
+        st.write("### Eliminar proyecto")
+        if not st.session_state.proyectos_ej4:
+            st.info("No hay proyectos para eliminar.")
+        else:
+            nombres = [p["nombre_proyecto"] for p in st.session_state.proyectos_ej4]
+            a_eliminar = st.selectbox("Selecciona el proyecto a eliminar", nombres, key="sel_eliminar")
+ 
+            if st.button("Eliminar proyecto", key="btn_eliminar_ej4"):
+                st.session_state.proyectos_ej4 = [
+                    p for p in st.session_state.proyectos_ej4 if p["nombre_proyecto"] != a_eliminar
+                ]
+                st.success(f"Proyecto '{a_eliminar}' eliminado correctamente 🗑️")
+                st.rerun()
+
+
+
+
