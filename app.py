@@ -179,7 +179,7 @@ elif app_mode == 'Ejercicio 2':
     else:
         st.info("Aún no hay registros.")
 elif app_mode == 'Ejercicio 3':
-st.title("Ejercicio 3: Indicadores de Mantenimiento")
+    st.title('Ejercicio 3: Indicadores de Mantenimiento')
     st.markdown(
         '''
         Este módulo calcula **MTBF**, **MTTR** y **disponibilidad** a partir del
@@ -231,11 +231,11 @@ st.title("Ejercicio 3: Indicadores de Mantenimiento")
     else:
         st.info("Aún no hay resultados calculados. Ejecuta el cálculo para ver el histórico aquí.")
  
-
-
+# ==================================================================
+# EJERCICIO 4 - Proyecto de Inversión (VPN, ROI, Payback) - CRUD
+# ==================================================================
 elif app_mode == 'Ejercicio 4':
-
-st.title('Ejercicio 4: Proyecto de Inversión (CRUD)')
+    st.title('Ejercicio 4: Proyecto de Inversión (CRUD)')
     st.markdown(
         '''
         Este módulo usa la clase `ProyectoInversion` (VPN, ROI, Payback simple) de la
@@ -384,7 +384,3 @@ st.title('Ejercicio 4: Proyecto de Inversión (CRUD)')
                 ]
                 st.success(f"Proyecto '{a_eliminar}' eliminado correctamente 🗑️")
                 st.rerun()
-
-
-
-
