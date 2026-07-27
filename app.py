@@ -36,7 +36,6 @@ app_mode = st.sidebar.selectbox('_Secciones_',['Home','Ejercicio 1','Ejercicio 2
 
 if app_mode == 'Home':
   st.title ('Proyecto N°1 de la Especialización de Python')
-  st.subheader("_Streamlit_ is :blue[cool] :sunglasses:")
   st.image('Python_logo.png')
   st.markdown(
     '''
