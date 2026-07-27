@@ -179,7 +179,6 @@ elif app_mode == 'Ejercicio 2':
     else:
         st.info("Aún no hay registros.")
 elif app_mode == 'Ejercicio 3':
-
 st.title("Ejercicio 3: Indicadores de Mantenimiento")
     st.markdown(
         '''
