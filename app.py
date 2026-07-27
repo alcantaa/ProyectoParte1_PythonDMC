@@ -180,7 +180,7 @@ elif app_mode == 'Ejercicio 2':
         st.info("Aún no hay registros.")
 elif app_mode == 'Ejercicio 3':
 
-st.title('Ejercicio 3: Indicadores de Mantenimiento')
+st.title("Ejercicio 3: Indicadores de Mantenimiento")
     st.markdown(
         '''
         Este módulo calcula **MTBF**, **MTTR** y **disponibilidad** a partir del
